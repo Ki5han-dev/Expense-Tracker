@@ -12,6 +12,7 @@ const balance = document.getElementById(
   const form = document.getElementById("form");
   const text = document.getElementById("text");
   const amount = document.getElementById("amount");
+  const ctx = document.getElementById('transaction-chart').getContext('2d');
   // const dummyTransactions = [
   //   { id: 1, text: "Flower", amount: -20 },
   //   { id: 2, text: "Salary", amount: 300 },
@@ -26,6 +27,41 @@ const balance = document.getElementById(
   
   let transactions = localStorage.getItem('transactions') !== null ? localStorageTransactions : [];
   
+  let chart = new Chart(ctx, {
+    type: 'bar', // You can change this to 'pie', 'line', etc.
+    data: {
+      labels: ['Income', 'Expense'], // X-axis labels
+      datasets: [{
+        label: 'Amount',
+        data: [0, 0], // Initially, income and expense are 0
+        backgroundColor: ['#2ecc71', '#e74c3c'], // Green for income, red for expense
+        borderColor: ['#27ae60', '#c0392b'],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+
+  //Update Chart
+  // Function to update the chart based on current transactions
+  function updateChart() {
+    const amounts = transactions.map(transaction => transaction.amount);
+    const income = amounts.filter(amount => amount > 0).reduce((acc, item) => acc + item, 0);
+    const expense = amounts.filter(amount => amount < 0).reduce((acc, item) => acc + item, 0) * -1;
+
+    // Update the chart data
+    chart.data.datasets[0].data = [income, expense];
+    chart.update();
+}
+
+
   //5
   //Add Transaction
   function addTransaction(e){
@@ -102,6 +138,9 @@ const balance = document.getElementById(
       balance.innerHTML = `&#8377;${total}`;
       money_plus.innerHTML = `+&#8377;${income}`;
       money_minus.innerHTML = `-&#8377;${expense}`;
+
+      //calling updatechart
+      updateChart();
   }
   
   
@@ -123,10 +162,11 @@ const balance = document.getElementById(
   
   //Init App
   function Init() {
-    list.innerHTML = "";
-    transactions.forEach(addTransactionDOM);
-    updateValues();
+    list.innerHTML = "";  // Clear the list
+    transactions.forEach(addTransactionDOM);  // Render transactions
+    updateValues();  // Update balance and chart
   }
+  
   
   Init();
   
